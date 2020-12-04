@@ -37,17 +37,19 @@ func HTTPDeleteAppSession(c *gin.Context) {
 		return
 	}
 
-	err = openapi.Deserialize(&eventsSubscReqData, requestBody, "application/json")
-	if err != nil {
-		problemDetail := "[Request Body] " + err.Error()
-		rsp := models.ProblemDetails{
-			Title:  "Malformed request syntax",
-			Status: http.StatusBadRequest,
-			Detail: problemDetail,
+	if len(requestBody) != 0 {
+		err = openapi.Deserialize(&eventsSubscReqData, requestBody, "application/json")
+		if err != nil {
+			problemDetail := "[Request Body] " + err.Error()
+			rsp := models.ProblemDetails{
+				Title:  "Malformed request syntax",
+				Status: http.StatusBadRequest,
+				Detail: problemDetail,
+			}
+			logger.PolicyAuthorizationlog.Errorln(problemDetail)
+			c.JSON(http.StatusBadRequest, rsp)
+			return
 		}
-		logger.PolicyAuthorizationlog.Errorln(problemDetail)
-		c.JSON(http.StatusBadRequest, rsp)
-		return
 	}
 
 	req := http_wrapper.NewRequest(c.Request, eventsSubscReqData)
