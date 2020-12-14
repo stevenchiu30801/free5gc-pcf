@@ -7,6 +7,7 @@ import (
 	"free5gc/lib/openapi"
 	"free5gc/lib/openapi/Nudr_DataRepository"
 	"free5gc/lib/openapi/models"
+	"free5gc/src/pcf/consumer"
 	pcf_context "free5gc/src/pcf/context"
 	"free5gc/src/pcf/logger"
 	"free5gc/src/pcf/util"
@@ -179,6 +180,30 @@ func createSMPolicyProcedure(request models.SmPolicyContextData) (
 		"Location": {locationHeader},
 	}
 	logger.SMpolicylog.Tracef("SMPolicy PduSessionId[%d] Create", request.PduSessionId)
+
+	// Create PCF binding data to BSF
+	policyAuthorizationService := pcf_context.PCF_Self().NfService[models.ServiceName_NPCF_POLICYAUTHORIZATION]
+	pcfBinding := models.PcfBinding{
+		Supi:           request.Supi,
+		Gpsi:           request.Gpsi,
+		Ipv4Addr:       request.Ipv4Address,
+		Ipv6Prefix:     request.Ipv6AddressPrefix,
+		IpDomain:       request.IpDomain,
+		Dnn:            request.Dnn,
+		Snssai:         request.SliceInfo,
+		PcfFqdn:        policyAuthorizationService.ApiPrefix,
+		PcfIpEndPoints: *policyAuthorizationService.IpEndPoints,
+	}
+
+	// TODO: Record BSF URI instead of discovering from NRF every time
+	bsfUri := consumer.SendNFInstancesBSF(pcf_context.PCF_Self().NrfUri)
+	bsfClient := util.GetNbsfClient(bsfUri)
+	_, resp, err := bsfClient.PCFBindingsCollectionApi.CreatePCFBinding(context.Background(), pcfBinding)
+	if err != nil || resp == nil || resp.StatusCode != http.StatusCreated {
+		problemDetail := util.GetProblemDetail("Cannot create PCF binding data in BSF", "")
+		logger.SMpolicylog.Warnf("Create PCF binding data in BSF error[%+v]", err)
+		return nil, nil, &problemDetail
+	}
 
 	return header, &decision, nil
 }

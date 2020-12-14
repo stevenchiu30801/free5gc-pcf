@@ -378,5 +378,5 @@ func getUdrUri(ue *pcf_context.UeContext) string {
 	if ue.UdrUri != "" {
 		return ue.UdrUri
 	}
-	return consumer.SendNFIntancesUDR(pcf_context.PCF_Self().NrfUri, ue.Supi)
+	return consumer.SendNFInstancesUDR(pcf_context.PCF_Self().NrfUri, ue.Supi)
 }

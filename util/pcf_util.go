@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"free5gc/lib/openapi/Namf_Communication"
+	"free5gc/lib/openapi/Nbsf_Management"
 	"free5gc/lib/openapi/Npcf_AMPolicy"
 	"free5gc/lib/openapi/Npcf_PolicyAuthorization"
 	"free5gc/lib/openapi/Npcf_SMPolicyControl"
@@ -81,6 +82,14 @@ func GetNudrClient(uri string) *Nudr_DataRepository.APIClient {
 	client := Nudr_DataRepository.NewAPIClient(configuration)
 	return client
 }
+
+func GetNbsfClient(uri string) *Nbsf_Management.APIClient {
+	configuration := Nbsf_Management.NewConfiguration()
+	configuration.SetBasePath(uri)
+	client := Nbsf_Management.NewAPIClient(configuration)
+	return client
+}
+
 func GetNamfClient(uri string) *Namf_Communication.APIClient {
 	configuration := Namf_Communication.NewConfiguration()
 	configuration.SetBasePath(uri)
